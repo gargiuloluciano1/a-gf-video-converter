@@ -14,6 +14,7 @@ coproc NAME { print_hello; }
 # prints everything necessary
 INPUT=''
 while { read -u ${NAME[0]} INPUT; }; do
-	
+	echo "punto numero: $((++INPUT))";
+
 done
 
