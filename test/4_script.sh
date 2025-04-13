@@ -1,18 +1,24 @@
 #!/bin/bash
 
-FILES=''
-NEW_FILES=''
-RES=''
-echo "insert file names"
-read FILES
-for file in $FILES; do
-	if [ ! -a "$file" ]; then
-		echo "File $file doesnt exist"
-		read -p "Do you wish to continue? [y/N]: " RES
-		if [ "$RES" = 'y' ]; then #Remove word
-			echo "here"
-			NEW_FILES=${FILES/*( )${file}*( )}
-			echo "$NEW_FILES";
-		fi;
-	 fi;
+function get_files {
+	FILES=''
+	local NEW_FILES=''
+	
+	echo "Please enter file names"
+	read FILES
+	NEW_FILES="$FILES"
+
+	for file in $FILES; do
+		if ! [ -a "$file" ]; then 
+			echo "File $file doesnt exist"
+			NEW_FILES=${NEW_FILES/$file}
+		fi
+	done
+
+	FILES=($NEW_FILES)
+}
+
+get_files
+for file in "${FILES[@]}"; do
+	echo "$file";
 done
