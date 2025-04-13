@@ -6,22 +6,30 @@
 
 convert_videos() {
 	for file in ${FILES[*]}; do
-		ffmpeg -i $file -map 0:0 -c copy file_out > /dev/null; #get return value
-		if [[ $? == 0 ]] then
-			echo "success";
-		fi
+		ffmpeg -y -i $file -map 0:0 -c copy out.mov &> /dev/null;
+		echo "$?";
 	done
 }
 
 declare -a FILES
 
+
+
+
+
+
+## keep asking user for file name if they are incorrect
 echo "Please write name of files"
 read -a FILES
+for file in ${FILES[*]}; do
+	if {! test -a $file; }; then
+		echo "$file is not a valid filename";
+	fi
+done
 
 coproc CHILD { convert_videos; }
 
 INPUT=''
-while { read -u ${CHILD[0]} INPUT; }; do
-	echo "file finished processing";
+while { read -u ${CHILD[0]} INPUT;}; do
+	echo "$INPUT";
 done
-
