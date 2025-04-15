@@ -1,0 +1,12 @@
+#!/bin/bash
+
+old_time=''
+let old_time=`stat -c %Y script_2 `
+echo ${old_time}
+echo hello >> script_2
+
+let old_time=`stat -c %Y script_2 `
+
+if [ "${old_time}" != "${new_time}" ]; then
+	echo "data is different";
+fi

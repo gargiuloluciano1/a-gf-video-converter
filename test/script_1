@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# make subshell convert videos, every 1 second check for last time of update of log file
+# if update, read file print
+#
+#
+log="log"
+
+rm -f ${log} # if file exist already
+ # write in file every second
+ (
+	i=''
+	for (( i=0; i < 10; i++ )); do
+		echo "ciao" >> ${log} 
+		sleep 1
+	done
+ )&
+
+ last_time=` stat -c %Y ${log} `
+ current_time=''
+ while [ 0 ]; do
+	let current_time=` stat -c %Y ${log} `
+	if [ "${last_time}" !=  "${current_time}" ]; then
+		let last_time=${current_time}
+		echo "file changed"
+	fi
+	sleep 1
+	
+ done
