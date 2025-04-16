@@ -1,0 +1,27 @@
+#!/bin/bash
+
+
+pipe="pipe.$$.tmp"
+rm -f ${pipe}
+
+#subshell 
+declare -i old_time
+declare -i current_time
+
+(old_time=`stat -c %Y ${pipe}`
+while [ 1 ]; do
+	sleep 1
+	current_time=`stat -c %Y ${pipe}`
+	if ((old_time != current_time )) ; then
+		echo "File changed"
+		old_time=${current_time}
+	fi
+done
+) &
+
+i=''
+for ((i=0; i < 10; i++ )); do
+	echo "hello" > ${pipe}
+	sleep 1
+done 
+kill -n 9 %1

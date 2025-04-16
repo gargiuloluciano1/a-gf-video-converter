@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+
+FILES=''
+read -p "Write name of files" FILES
+
+for file in "$FILES"; do
+	if [[ "$file" =~ ^(\\.+\\)+ ]]; then
+		echo "file is absolute"
+		echo "$file"
+	fi
+	if [ -a "$file" ]; then
+		echo "file is normal";
+		echo "$file"
+	fi
+done

@@ -1,56 +1,43 @@
 #!/bin/bash
 
-# Simple script for changing the video format (?)
-# Add a coproc where to show percentage of completion
+pipe="pipe.$$.tmp"
+rm -f ${pipe}
 
-# TODO check for correct format
-#
+declare -i old_time
+declare -i current_time
 
-# when subproc finishes converting file, send signal to main proc
-# 
-
-# $1 file to read from
-update_status () {
-	status=''
-	read -u 11 status
-	echo "status was $status"
-}
-
-convert_files() {
-	for file in ${[FILES[*]}; do
-		ffmpeg -y -i $file -map 0:0 -c copy out/${file/.*/.mov} &> /dev/null;
-		echo "$?" >> $1
-		#kill -n 10 $2 
-	done
-}
-
-
-# Get name of files to convert 
 FILES=''
-NEW_FILES=''
-
-echo "Please enter file names"
+echo "Please insert name of file(s)"
 read FILES
-NEW_FILES="$FILES"
+for file in FILES; do
+{	
+	#check if its a file
+	if []
+}
 
-for file in $FILES; do
-	if ! [ -a "$file" ]; then 
-		echo "File $file doesnt exist"
-		NEW_FILES=${NEW_FILES/$file}
-	fi
 
+# TODO need way to kill shell when ^C
+(old_time=` stat -c %Y ${pipe} `
+ while [ 1 ]; do
+	 sleep 1
+	 current_time=` stat -c %Y ${pipe} `
+	 if (( current_time != old_time )); then
+		 read < ${pipe}
+		 echo "was read: $REPLY"
+
+	 fi;
+ done
+) &
+
+
+declare -i i
+for (( i=0; i < 10; i++ )); do
+	ffmpeg -y -i $file -map 0:0 -c copy out/${file/.*/.mov} &> ${pipe};
 done
+kill -s SIGTERM %1 &> /dev/null
 
-declare -a FILES
-FILES=($NEW_FILES)
+rm -f ${pipe}
 
-# create pipe, set handler, start subprocess
-11<>pipe.$$.tmp
-
-#trap update_status SIGUSR1
-convert_files FILES &
-#
-## wait for child to exit
-#wait
-11<&-
-#rm pipe.$$.tmp
+unset i
+unset old_time
+unset current_time
