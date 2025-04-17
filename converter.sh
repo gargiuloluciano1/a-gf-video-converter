@@ -6,38 +6,51 @@
 # TODO check for correct format
 #
 
-function get_files {
-	FILES=''
-	NEW_FILES=''
-	
-	echo "Please enter file names"
-	read FILES
-	NEW_FILES="$FILES"
+# when subproc finishes converting file, send signal to main proc
+# 
 
-	for file in $FILES; do
-		if ! [ -a "$file" ]; then 
-			echo "File $file doesnt exist"
-			NEW_FILES=${NEW_FILES/$file}
-		fi
-	done
-	
-	declare -a FILES
-	FILES=($NEW_FILES)
+# $1 file to read from
+update_status () {
+	status=''
+	read -u 11 status
+	echo "status was $status"
 }
 
-convert_videos() {
-	for file in ${FILES[*]}; do
-		ffmpeg -y -i $file -map 0:0 -c copy out.mov &> /dev/null;
-		echo "$?";
+convert_files() {
+	for file in ${[FILES[*]}; do
+		ffmpeg -y -i $file -map 0:0 -c copy out/${file/.*/.mov} &> /dev/null;
+		echo "$?" >> $1
+		#kill -n 10 $2 
 	done
 }
+
 
 # Get name of files to convert 
-get_files
+FILES=''
+NEW_FILES=''
 
-coproc CHILD { convert_videos; }
+echo "Please enter file names"
+read FILES
+NEW_FILES="$FILES"
 
-INPUT=''
-while { read -u ${CHILD[0]} INPUT;}; do
-	echo "$INPUT";
+for file in $FILES; do
+	if ! [ -a "$file" ]; then 
+		echo "File $file doesnt exist"
+		NEW_FILES=${NEW_FILES/$file}
+	fi
+
 done
+
+declare -a FILES
+FILES=($NEW_FILES)
+
+# create pipe, set handler, start subprocess
+11<>pipe.$$.tmp
+
+#trap update_status SIGUSR1
+convert_files FILES &
+#
+## wait for child to exit
+#wait
+11<&-
+#rm pipe.$$.tmp
