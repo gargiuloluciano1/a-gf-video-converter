@@ -18,11 +18,11 @@ echo "Insert file name"
 read FILES
 
 # check file exist 
-for file in "$FILES"; do
-	if ! [  -a "${file}" ]; then
+for file in $FILES; do
+	if ! [ -a "${file}" ]; then
 		# file doesnt exist
 		# exit for now
-		exit -1
+		echo "file no exist"
 	fi
 	if [ -d "${file}" ]; then
 		# directory
@@ -33,21 +33,23 @@ done
 
 
 ## bg shell reads from pipe, prints status in the stdin
-function print_status () {
+init_log () {
+	echo -ne '\033[01;33m'
+		echo '
+		  \,`/ / 
+		 _)..  `_
+		( __  -\
+		    ``.                  
+		} }_ ( \>_-_,    W< '
+		echo -e '\033[0;0m'
+}
 
-echo -ne '\033[01;33m'
-	echo '
-	  \,`/ / 
-	 _)..  `_
-	( __  -\
-	    ``.                  
-	} }_ ( \>_-_,    W< '
-	echo -e '\033[0;0m'
-	if [ -z $2 ]; then
+function print_status () {
+	if [ -z "$2" ]; then
 		echo -ne "File "${1}" loaded succesfully\r"
 	
 	else    
-		echo -ne "File "${1}" loaded unsuccesfully\r";
+		echo -ne "File "${1}" failed to load\r";
 	fi
 }
 
@@ -66,18 +68,27 @@ declare -i old_time current_time
 # check each second for update
 # TODO may want to bg process in same shell env
 { (
+	init_log
+
 	old_time=` stat -c %Y ${pipe} ` 
 	while [ 1 ]; do 
-		sleep 0.2
+		sleep 0.5
 		current_time=` stat -c %Y ${pipe} `
 		if  (($current_time>${old_time})); then
 			old_time=${current_time}
-			loaded=`awk '/from/ { print $5 }' <${pipe}`
+			loaded="`awk '/from/ { print $5 }' ${pipe}`"
+			if [ -z "$loaded" ]; then
+				loaded="`awk '/input file / { print $5 }' ${pipe}`"
+				error="Failed to load file"
+			else
+				error=''
+			fi
+
 			result=``
 			# $1 name of file
 			# $2 result of download
 			#
-			print_status $loaded
+			print_status $loaded $error
 		else
 			loading_bar ;
 		fi	
@@ -86,9 +97,13 @@ declare -i old_time current_time
 
 OUT_DIR="out"
 mkdir -p "${OUT_DIR}"
-for file in "${FILES}"; do 
-	ffmpeg -y -i "$file" -map 0:0 -c copy ${OUT_DIR}/out.mov &> ${pipe};
+#change ugly i/o
+for file in ${FILES}; do 
+	input="$file"
+	out=${file#*/}
+	out=${out%.*}
+	ffmpeg -y -i "$input" -map 0:0 -c copy ${OUT_DIR}/$out.mov &> ${pipe};
+	sleep 2
 done
-sleep 10
 echo
 { kill -n 9 %%; } &> /dev/null
