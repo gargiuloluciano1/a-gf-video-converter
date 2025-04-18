@@ -20,9 +20,7 @@ read FILES
 # check file exist 
 for file in $FILES; do
 	if ! [ -a "${file}" ]; then
-		# file doesnt exist
-		# exit for now
-		echo "file no exist"
+
 	fi
 	if [ -d "${file}" ]; then
 		# directory
@@ -58,7 +56,7 @@ declare -i counter=0
 TAG="#"
 loading_bar () {
 	if (( counter > 5 )); then let counter=0; fi
-	echo -n  "${LOAD[$counter]}                                     "                                     
+	echo -n  "${LOAD[$counter]}                                        " 
 	let ++counter
 	echo -ne "\r"
 
